@@ -10,11 +10,15 @@ import Google from "./sheet.js";
 const openai = new OpenAI({ apiKey: process.env["OPENAI_API_KEY"] });
 const google = Google();
 
+const SPREADSHEET_ID = "1D2TK-2Yil1WSThyYOgBm7z20cL_GXu--yGfZU4a8v_c";
+const SPREADSHEET_RANGE = "Sheet1!A1:D1";
+
 const getBtcData = async () => {
     const url = "https://data.hashrateindex.com/network-data/bitcoin-hashprice-index";
     await captureWebsite.file(url, "screenshot.png");
 
-    const screenshot = await fs.readFile(path.join(process.cwd(), "screenshot.png"), "base64");
+    const screenshotPath = path.join(process.cwd(), "screenshot.png");
+    const screenshot = await fs.readFile(screenshotPath, "base64");
     const result = await openai.chat.completions.create({
         model: "gpt-4o-mini",
         messages: [
@@ -36,19 +40,17 @@ const getBtcData = async () => {
     return [btcPrice, hashPrice];
 }
 
-const addRowToSheet = async (sheets, newRow) => {
-    const spreadsheetId = "1D2TK-2Yil1WSThyYOgBm7z20cL_GXu--yGfZU4a8v_c";
-    const range = "Sheet1!A1:D1";
+const addRowToSheet = async (newRow) => {
     try {
-        const result = await sheets.spreadsheets.values.get({
-            spreadsheetId,
-            range,
+        const result = await google.sheets.spreadsheets.values.get({
+            SPREADSHEET_ID,
+            SPREADSHEET_RANGE,
         });
 
         const existingValues = result.data.values || [];
-        const updateResult = await sheets.spreadsheets.values.update({
-            spreadsheetId,
-            range: "Sheet1!A1",
+        const updateResult = await google.sheets.spreadsheets.values.update({
+            SPREADSHEET_ID,
+            SPREADSHEET_RANGE: "Sheet1!A1",
             valueInputOption: "RAW",
             resource: { values: [...existingValues, newRow] },
         });
@@ -56,13 +58,13 @@ const addRowToSheet = async (sheets, newRow) => {
         console.log(`${updateResult.data.updatedCells} cells updated.`);
 
     } catch (err) {
-        console.error("The API returned an error: " + err);
+        console.error("The GSheets API returned an error: " + err);
     }
 };
 
 const main = async () => {
     const data = await getBtcData();
-    await addRowToSheet(google.sheets, data);
+    await addRowToSheet(data);
 }
 
 main();
