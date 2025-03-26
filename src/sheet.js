@@ -55,11 +55,11 @@ const authorize = async () => {
     return client;
 };
 
-const google = async () => {
+const Google = async () => {
     const client = await authorize();
     const sheets = api.sheets({ version: "v4", auth: client });
     return { client, sheets };
 
 }
 
-export default google;
+export default Google;

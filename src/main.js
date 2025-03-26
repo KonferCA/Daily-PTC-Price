@@ -5,9 +5,10 @@ import { promises as fs } from "node:fs";
 
 import captureWebsite from "capture-website";
 import OpenAI from "openai";
-import google from "./sheet.js";
+import Google from "./sheet.js";
 
 const openai = new OpenAI({ apiKey: process.env["OPENAI_API_KEY"] });
+const google = Google();
 
 const getBtcData = async () => {
     const url = "https://data.hashrateindex.com/network-data/bitcoin-hashprice-index";
@@ -45,13 +46,11 @@ const addRowToSheet = async (sheets, newRow) => {
         });
 
         const existingValues = result.data.values || [];
-
-        // Update the sheet with the new data
         const updateResult = await sheets.spreadsheets.values.update({
-        spreadsheetId,
-        range: "Sheet1!A1", // Update starting from the first cell
-        valueInputOption: "RAW",
-        resource: { values: [...existingValues, newRow] },
+            spreadsheetId,
+            range: "Sheet1!A1",
+            valueInputOption: "RAW",
+            resource: { values: [...existingValues, newRow] },
         });
 
         console.log(`${updateResult.data.updatedCells} cells updated.`);
@@ -62,9 +61,8 @@ const addRowToSheet = async (sheets, newRow) => {
 };
 
 const main = async () => {
-    const g = await google();
-    const newRow = await getBtcData();
-    await addRowToSheet(g.sheets, newRow);
+    const data = await getBtcData();
+    await addRowToSheet(google.sheets, data);
 }
 
 main();
