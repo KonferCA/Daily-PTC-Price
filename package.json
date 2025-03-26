@@ -17,6 +17,7 @@
     "capture-website": "^4.2.0",
     "cheerio": "^1.0.0",
     "dotenv": "^16.4.7",
-    "googleapis": "105"
+    "googleapis": "105",
+    "openai": "^4.89.1"
   }
 }
